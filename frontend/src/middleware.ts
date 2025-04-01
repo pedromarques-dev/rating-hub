@@ -1,55 +1,66 @@
-import { MiddlewareConfig, NextRequest, NextResponse } from "next/server"
+import {
+	type MiddlewareConfig,
+	type NextRequest,
+	NextResponse,
+} from "next/server";
 
 const publicRoutes = [
-  { path: '/login', whenAuthenticated: 'redirect' },
-  { path: '/register', whenAuthenticated: 'redirect' },
-  { path: '/pricing', whenAuthenticated: 'next' },
-] as const
+	{ path: "/login", whenAuthenticated: "redirect" },
+	{ path: "/register", whenAuthenticated: "redirect" },
+	{ path: "/pricing", whenAuthenticated: "next" },
+] as const;
 
-const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = '/login'
+const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = "/login";
 
 export function middleware(req: NextRequest) {
-    const path = req.nextUrl.pathname
-    const publicRoute = publicRoutes.find(route => route.path === path)
-    const authToken = req.cookies.get('token')
+	const path = req.nextUrl.pathname;
+	const publicRoute = publicRoutes.find((route) => route.path === path);
+	const authToken = req.cookies.get("token");
 
-    if (!authToken && publicRoute) {
-      return NextResponse.next()
-    }
+	if (req.nextUrl.pathname.startsWith('/enterprise')) {
+		return NextResponse.next()
+	  }
 
-    if (!authToken && !publicRoute) {
-      const redirectUrl = req.nextUrl.clone()
+	if (!authToken && publicRoute) {
+		return NextResponse.next();
+	}
 
-      redirectUrl.pathname = REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE
+	if (!authToken && !publicRoute) {
+		const redirectUrl = req.nextUrl.clone();
 
-      return NextResponse.redirect(redirectUrl)
-    }
+		redirectUrl.pathname = REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE;
 
-    if (authToken && publicRoute && publicRoute.whenAuthenticated === 'redirect') {
-      const redirectUrl = req.nextUrl.clone()
+		return NextResponse.redirect(redirectUrl);
+	}
 
-      redirectUrl.pathname = '/'
+	if (
+		authToken &&
+		publicRoute &&
+		publicRoute.whenAuthenticated === "redirect"
+	) {
+		const redirectUrl = req.nextUrl.clone();
 
-      return NextResponse.redirect(redirectUrl)
-    }
+		redirectUrl.pathname = "/";
 
-    if (authToken && !publicRoute) {
-      return NextResponse.next()
-    }
+		return NextResponse.redirect(redirectUrl);
+	}
 
-    return NextResponse.next()
+	if (authToken && !publicRoute) {
+		return NextResponse.next();
+	}
 
+	return NextResponse.next();
 }
 
 export const config: MiddlewareConfig = {
-    matcher: [
-      /*
-       * Match all request paths except for the ones starting with:
-       * - api (API routes)
-       * - _next/static (static files)
-       * - _next/image (image optimization files)
-       * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-       */
-      '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
-    ],
-  }
+	matcher: [
+		/*
+		 * Match all request paths except for the ones starting with:
+		 * - api (API routes)
+		 * - _next/static (static files)
+		 * - _next/image (image optimization files)
+		 * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+		 */
+		"/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+	],
+};
