@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: app_postgres
+    environment:
+      POSTGRES_USER: rating_hub
+      POSTGRES_PASSWORD: ratinghub
+      POSTGRES_DB: rating_hub_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
